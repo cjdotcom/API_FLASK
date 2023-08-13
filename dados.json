@@ -1,0 +1,9 @@
+{
+  "Products": [
+    {
+      "codigo": 1000,
+      "nome": "produto 1",
+      "dataCriacao": "00/00/0000"
+    }
+  ]
+}
