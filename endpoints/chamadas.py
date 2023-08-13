@@ -21,7 +21,7 @@ class ApiStatus(Resource):
         return db
 
 @api.route('/Products')
-class ProdutoByOrder(Resource):
+class Produtos(Resource):
     def get(self,):
         caminhoExcel = "db_excel.xlsx"
         wb = load_workbook(caminhoExcel)
@@ -59,9 +59,66 @@ class ProdutoByOrder(Resource):
 
         df = pd.DataFrame(retorno)
         return json.loads(df.to_json())
+    
+@api.route('/Product')
+class ProdutoByCodigo(Resource):
+    def get(self,):
+        codigo = request.args.get('codigo')
+        caminhoExcel = "db_excel.xlsx"
+        wb = load_workbook(caminhoExcel)
+        sheet = wb['DADOS']
+        lista = []
+        for i in range(2, sheet.max_row):
+            linha = [x.value for x in sheet[i]]
+            if linha[0] != None:
+                lista.append(linha)
+            else:
+                break
 
-    def post(self,):
-        pass
+        t = {}
+        for i in lista:
+            t[i[0]] = [i[1], i[2]]
 
-    def put(self,):
-        pass
+        form = """
+            {
+            "codigo":"",
+            "name":"",
+            "dtRegistro":""
+            }
+        """
+        tdb = json.loads(form)
+
+        retorno = []
+        for k, v in t.items():
+            info = tdb.copy()
+
+            info['codigo'] = k
+            info['name'] = v[0]
+            info['dtRegistro'] = v[1]
+
+            retorno.append({"Products":info})
+
+        erro_cod = """
+            {
+                "erro": "A chamada /Product requer o parametro <codigo>", 
+                "param": "invalid"
+            }
+        """
+        if codigo != None:
+            df = pd.DataFrame(retorno)
+            df_real = None
+            for db_cod in df['Products'].values:
+                if db_cod['codigo'] == int(codigo):
+                    df_real = json.dumps({"Product":db_cod})
+            
+            if df_real != None:
+                return json.loads(df_real)
+            else:
+                erro_prod = """
+                    {
+                        "erro": "Código não cadastrado!"
+                    }
+                """
+                return json.loads(erro_prod)
+        else:
+            return json.loads(erro_cod)
