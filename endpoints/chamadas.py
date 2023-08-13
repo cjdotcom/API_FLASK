@@ -20,7 +20,7 @@ class ApiStatus(Resource):
         db['Date'] = str(dia)
         return db
 
-@api.route('/Order')
+@api.route('/Products')
 class ProdutoByOrder(Resource):
     def get(self,):
         caminhoExcel = "db_excel.xlsx"
