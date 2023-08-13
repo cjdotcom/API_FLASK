@@ -8,6 +8,10 @@ class Server():
         self.api = Api(self.app,
                        title='API_FLASK_PRODUTOS'
                        )
+        self.api.namespace(
+            'Product{codigo}',
+            path = '/Products'
+        )
     
     def run(self,):
         # serve(self.api, port=4000) #SERVIDOR WSGI PARA PRODUÇÃO
