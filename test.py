@@ -6,7 +6,7 @@ from pprint import pprint
 
 
 # Pega dados da planilha
-def getProdutos():
+def getProdutos(codigo=0):
     caminhoExcel = "db_excel.xlsx"
     wb = load_workbook(caminhoExcel)
     sheet = wb['DADOS']
@@ -42,10 +42,24 @@ def getProdutos():
         retorno.append({"Products":info})
 
     df = pd.DataFrame(retorno)
-    return json.loads(df.to_json())
+    df_real = None
+    for db_cod in df['Products'].values:
+        if db_cod['codigo'] == codigo:
+            df_real = json.dumps({"Product":db_cod})
+    
+    if df_real != None:
+        return json.loads(df_real)
+    else:
+        erro = """
+        {
+            "erro": "Código não cadastrado!"
+        }
+        """
+        return json.loads(erro)
 
+    # return json.loads(df.to_json())
 
-pprint(getProdutos())
+# pprint(getProdutos(10))
 
 #Escreve informações na planilha
 def postProduto(codigo, nomeproduto):
@@ -53,7 +67,7 @@ def postProduto(codigo, nomeproduto):
     workbook = load_workbook(caminhoExcel)
     sheet = workbook['DADOS']
     c = 0
-    for i in range(1, sheet.max_row):
+    for i in range(2, sheet.max_row):
         linha = [x.value for x in sheet[i]]
         if linha[0] != None:
             c += 1
@@ -76,11 +90,12 @@ def postProduto(codigo, nomeproduto):
         print(f"Linha de inserção: {linha}")
         sheet.cell(row=linha, column=1, value=int(codigo))
         sheet.cell(row=linha, column=2, value=nomeproduto)
-        sheet.cell(row=linha, column=3, value=datetime.today())
+        sheet.cell(row=linha, column=3, value=datetime.today().strftime("%d/%m/%Y %H:%M:%S"))
 
         workbook.save(caminhoExcel)
             #Roda escrita do código na planilha
 
+# postProduto(1005, 'produto10')
 
 # form = """{
 #   "Products": [
