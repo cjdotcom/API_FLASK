@@ -122,3 +122,56 @@ class ProdutoByCodigo(Resource):
                 return json.loads(erro_prod)
         else:
             return json.loads(erro_cod)
+        
+@api.route('/CadProduct')
+class CadastroProduto(Resource):
+    def post(self,):
+        codigo = request.args['codigo']
+        nomeProduto = request.args['nomeProduto']
+
+        caminhoExcel = "db_excel.xlsx"
+        wb = load_workbook(caminhoExcel)
+        sheet = wb['DADOS']
+        lista = []
+        c = 0
+        for i in range(2, sheet.max_row):
+            linha = [x.value for x in sheet[i]]
+            if linha[0] != None:
+                lista.append(linha)
+                c += 1
+            else:
+                break
+
+        t = {}
+        for i in lista:
+            t[i[0]] = [i[1], i[2]]
+
+        gatilho = None
+        for k, v in t.items():
+            if int(codigo) == k:
+                gatilho = True
+                break
+            else:
+                gatilho = False
+
+        if gatilho == False:
+            linha = c+1
+            sheet.cell(row=linha, column=1, value=int(codigo))
+            sheet.cell(row=linha, column=2, value=str(nomeProduto))
+            sheet.cell(row=linha, column=3, value=datetime.today().strftime("%d/%m/%Y %H:%M:%S"))
+
+            wb.save(caminhoExcel)
+
+            succes = """
+                {
+                    "info":"Produto cadastrado!"
+                }
+            """
+            return json.loads(succes)
+        else:
+            erro = """
+                {
+                    "error":"Produto já existe."
+                }
+            """
+            return json.loads(erro)
