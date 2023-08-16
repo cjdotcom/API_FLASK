@@ -98,12 +98,12 @@ class ProdutoByCodigo(Resource):
 
             retorno.append({"Products":info})
 
-        erro_cod = """
-            {
-                "erro": "A chamada /Product requer o parametro <codigo>", 
-                "param": "invalid"
+        aviso = {
+                "erro": "", 
+                "param": ""
             }
-        """
+        aviso['erro'] = f"A chamada /Product requer o parametro <codigo>"
+        aviso['param'] = "missing"
         if codigo != None:
             df = pd.DataFrame(retorno)
             df_real = None
@@ -114,17 +114,14 @@ class ProdutoByCodigo(Resource):
             if df_real != None:
                 return json.loads(df_real)
             else:
-                erro_prod = """
-                    {
-                        "erro": "Código não cadastrado!"
+                aviso = {
+                        "erro": ""
                     }
-                """
-                return json.loads(erro_prod)
+                aviso['erro'] = f"Código '{codigo}' não cadastrado!"
+                return json.dumps(aviso, indent=2)
         else:
-            return json.loads(erro_cod)
+            return json.loads(aviso)
         
-@api.route('/CadProduct')
-class CadastroProduto(Resource):
     def post(self,):
         codigo = request.args['codigo']
         nomeProduto = request.args['nomeProduto']
@@ -162,16 +159,40 @@ class CadastroProduto(Resource):
 
             wb.save(caminhoExcel)
 
-            succes = """
-                {
-                    "info":"Produto cadastrado!"
+            aviso = {
+                    "info":""
                 }
-            """
-            return json.loads(succes)
+            aviso['info'] = f"Produto ({codigo}, {nomeProduto}) cadastrado!"
         else:
-            erro = """
-                {
-                    "error":"Produto já existe."
+            aviso = {
+                    "error":"Produto "
                 }
-            """
-            return json.loads(erro)
+            aviso['error'] = f"Produto {codigo} já existe."
+
+        return json.dumps(aviso, indent=2)
+        
+    def delete(self,):
+        codigo = request.args['codigo']
+        caminhoExcel = "db_excel.xlsx"
+        wb = load_workbook(caminhoExcel)
+        sheet = wb['DADOS']
+
+        index = None
+        for i, linha in enumerate(sheet.iter_rows(min_row=1, max_row=sheet.max_row, min_col=1, max_col=1, values_only=True), start=1):
+            if linha[0] == codigo:
+                index = i
+                break
+        
+        if index is not None:
+            sheet.delete_rows(index)
+            aviso = {
+                    "Succes":""
+                }
+            aviso['Succes'] = f"Produto {codigo} excluído!"
+        else:
+            aviso = {
+                "Error":""
+            }
+        aviso['Error'] = f"Produto {codigo} não existe."
+
+        return json.dumps(aviso, indent=2)
