@@ -191,13 +191,14 @@ class ProdutoByCodigo(Resource):
         sheet = wb['DADOS']
 
         index = None
-        for i, linha in enumerate(sheet.iter_rows(min_row=1, max_row=sheet.max_row, min_col=1, max_col=1, values_only=True), start=1):
-            if linha[0] == codigo:
+        for i, linha in enumerate(sheet.iter_rows(min_row=1, max_row=sheet.max_row+2, min_col=1, max_col=1, values_only=True), start=1):
+            if linha[0] == int(codigo):
                 index = i
                 break
         
         if index is not None:
             sheet.delete_rows(index)
+            wb.save(caminhoExcel)
             aviso = {
                     "Succes":""
                 }
