@@ -55,7 +55,7 @@ class Produtos(Resource):
             info['name'] = v[0]
             info['dtRegistro'] = v[1]
 
-            retorno.append({"Products":info})
+            retorno.append({"Products":[info]})
 
         df = pd.DataFrame(retorno)
         return json.loads(df.to_json())
@@ -68,7 +68,7 @@ class ProdutoByCodigo(Resource):
         wb = load_workbook(caminhoExcel)
         sheet = wb['DADOS']
         lista = []
-        for i in range(2, sheet.max_row):
+        for i in range(2, sheet.max_row+1):
             linha = [x.value for x in sheet[i]]
             if linha[0] != None:
                 lista.append(linha)
@@ -99,11 +99,14 @@ class ProdutoByCodigo(Resource):
             retorno.append({"Products":info})
 
         aviso = {
-                "erro": "", 
-                "param": ""
+            "erro": "",
+            "param": ""
             }
-        aviso['erro'] = f"A chamada /Product requer o parametro <codigo>"
+            
+        aviso['erro'] = f"Essa chamada requer o parametro <codigo>"
         aviso['param'] = "missing"
+        jsonAviso = json.dumps(aviso, indent=2)
+
         if codigo != None:
             df = pd.DataFrame(retorno)
             df_real = None
@@ -117,10 +120,12 @@ class ProdutoByCodigo(Resource):
                 aviso = {
                         "erro": ""
                     }
+                
                 aviso['erro'] = f"Código '{codigo}' não cadastrado!"
-                return json.dumps(aviso, indent=2)
+                jsonAviso = json.dumps(aviso, indent=2)
+                return json.loads(jsonAviso)
         else:
-            return json.loads(aviso)
+            return json.loads(jsonAviso)
         
     def post(self,):
         codigo = request.args['codigo']
@@ -130,12 +135,13 @@ class ProdutoByCodigo(Resource):
         wb = load_workbook(caminhoExcel)
         sheet = wb['DADOS']
         lista = []
-        c = 0
-        for i in range(2, sheet.max_row):
+
+        c = 1
+        for i in range(2, sheet.max_row+2):
             linha = [x.value for x in sheet[i]]
+            c += 1
             if linha[0] != None:
                 lista.append(linha)
-                c += 1
             else:
                 break
 
@@ -152,7 +158,7 @@ class ProdutoByCodigo(Resource):
                 gatilho = False
 
         if gatilho == False:
-            linha = c+1
+            linha = c
             sheet.cell(row=linha, column=1, value=int(codigo))
             sheet.cell(row=linha, column=2, value=str(nomeProduto))
             sheet.cell(row=linha, column=3, value=datetime.today().strftime("%d/%m/%Y %H:%M:%S"))
@@ -169,7 +175,9 @@ class ProdutoByCodigo(Resource):
                 }
             aviso['error'] = f"Produto {codigo} já existe."
 
-        return json.dumps(aviso, indent=2)
+        jsonAviso = json.dumps(aviso, indent=2)
+
+        return json.loads(jsonAviso)
         
     def delete(self,):
         codigo = request.args['codigo']
@@ -193,6 +201,7 @@ class ProdutoByCodigo(Resource):
             aviso = {
                 "Error":""
             }
-        aviso['Error'] = f"Produto {codigo} não existe."
+            aviso['Error'] = f"Produto {codigo} não existe."
+        jsonAviso = json.dumps(aviso, indent=2)
 
-        return json.dumps(aviso, indent=2)
+        return json.loads(jsonAviso)
