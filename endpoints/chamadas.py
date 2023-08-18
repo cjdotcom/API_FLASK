@@ -27,7 +27,7 @@ class Produtos(Resource):
         wb = load_workbook(caminhoExcel)
         sheet = wb['DADOS']
         lista = []
-        for i in range(2, sheet.max_row):
+        for i in range(2, sheet.max_row+1):
             linha = [x.value for x in sheet[i]]
             if linha[0] != None:
                 lista.append(linha)
@@ -55,10 +55,15 @@ class Produtos(Resource):
             info['name'] = v[0]
             info['dtRegistro'] = v[1]
 
-            retorno.append({"Products":[info]})
+            retorno.append(info)
 
-        df = pd.DataFrame(retorno)
-        return json.loads(df.to_json())
+        products ={
+            "Products":""
+        }
+        products['Products'] = retorno
+
+        result = json.dumps(products, indent=2)
+        return json.loads(result)
     
 @api.route('/Product')
 class ProdutoByCodigo(Resource):
@@ -161,7 +166,7 @@ class ProdutoByCodigo(Resource):
             linha = c
             sheet.cell(row=linha, column=1, value=int(codigo))
             sheet.cell(row=linha, column=2, value=str(nomeProduto))
-            sheet.cell(row=linha, column=3, value=datetime.today().strftime("%d/%m/%Y %H:%M:%S"))
+            sheet.cell(row=linha, column=3, value=datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
 
             wb.save(caminhoExcel)
 
