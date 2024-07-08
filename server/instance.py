@@ -15,6 +15,6 @@ class Server():
     
     def run(self,):
         # serve(self.api, port=4000) #SERVIDOR WSGI PARA PRODUÇÃO
-        self.app.run(host="0.0.0.0", port=4000, debug=True) #SERVIDOR LOCAL PARA MANUTENÇÃO
+        self.app.run(host="0.0.0.0",debug=True) #SERVIDOR LOCAL PARA MANUTENÇÃO
 
 server = Server()
